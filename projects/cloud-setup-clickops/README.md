@@ -39,6 +39,14 @@ Follow these steps to generate key pairs for SSH and RDP access:
    - _File format_: `ppk`  
    ![Create PPK Key Pair](screenshots/create-keypair-ppk.png)
 
+**Key Pair Details and Best Practices**  
+- AWS key pairs provide secure SSH/RDP authentication for EC2 instances without passwords.  
+- The `.pem` private key is used with Linux/macOS SSH clients (`ssh -i nwtbootcampkey.pem ec2-user@<public-ip>`).  
+- The `.ppk` private key is used with PuTTY on Windows; import `.pem` into PuTTYgen to generate `.ppk`.  
+- Restrict permissions on your private keys: `chmod 400 nwtbootcampkey.pem`.  
+- Store keys securely—do not commit them to version control or share publicly.  
+- You can associate this key pair with any new EC2 instance in the same region and account.  
+
 ## Launch Windows Server EC2 Instance
 
 Follow these steps to launch a Windows Server EC2 instance:
@@ -73,5 +81,36 @@ Follow these steps to launch a Windows Server EC2 instance:
      - **All traffic**: Source = `10.200.123.0/24`  
    ![Security Group](screenshots/create-windows-server-5.png)
 
+   **Security Group Rationale**  
+   - **RDP (TCP 3389)** with _My IP_ ensures that only your current public address can initiate remote desktop sessions, reducing exposure to unauthorized access.  
+   - **All traffic** with _Custom: 10.200.123.0/24_ allows unrestricted communication between instances in your VPC (public and private subnets) for management and inter-service traffic without opening ports to the internet.
+
 8. **Review and Launch**  
    Verify your settings and click **Launch** to start the instance.
+
+## Launch and Attach Network Interface (ENA)
+
+Follow these steps to create a secondary network interface in your VPC and attach it to the Windows instance:
+
+1. **Open Network Interfaces**  
+   ![Open Network Interfaces](screenshots/create-windows-server-nic-1.png)
+
+2. **Create Network Interface**  
+   - _Description_: `network-bootcamp-nic`  
+   - _Interface type_: `ena`  
+   - _Subnet_: `network-bootcamp-PrivateSubnetAZ1`  
+   - _Auto-assign private IP_: Enable  
+   - _Security group_: `allow-rdp-login`  
+   ![Create NIC](screenshots/create-windows-server-nic-2.png)
+
+3. **Attach Network Interface**  
+   - Select the NIC `network-bootcamp-nic`  
+   - Click **Actions > Attach**  
+   - Choose **Instance**: your Windows Server instance  
+   ![Attach NIC](screenshots/attach-network-interface-windows-box.png)  
+   ![Attach NIC Confirmation](screenshots/attach-network-interface-windows-box-2.png)
+
+**Network Interface Rationale**  
+- Separates management and application traffic by using a secondary ENA, improving security and network segmentation.  
+- Enables you to move or reassign the interface between instances without recreating configurations.
+
