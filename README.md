@@ -2,4 +2,4 @@
 
 ## Journals
 ### Week 1
-[x] [Lesson 1](./projects/cloud-setup-clickops/README.md)
+- [x] [Lesson 1](./projects/cloud-setup-clickops/README.md)
