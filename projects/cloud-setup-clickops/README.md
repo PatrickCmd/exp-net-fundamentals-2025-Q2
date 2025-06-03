@@ -114,3 +114,37 @@ Follow these steps to create a secondary network interface in your VPC and attac
 - Separates management and application traffic by using a secondary ENA, improving security and network segmentation.  
 - Enables you to move or reassign the interface between instances without recreating configurations.
 
+## Connect to Windows Instance via RDP
+
+Follow these steps to connect to your Windows Server using a Remote Desktop client:
+
+1. **Open the EC2 console and select your instance**  
+   ![Select Instance](screenshots/connect-rdp-1.png)
+
+2. **Click Connect**  
+   
+
+3. **Download Remote Desktop File**  
+   - Click **Download remote desktop file**  
+   
+
+4. **Retrieve Windows Administrator Password**  
+   - Click **Get password**  
+   - Upload your private key file (`nwtbootcampkey.pem`)  
+   ![Click Connect](screenshots/connect-rdp-2.png)
+
+   - Click **Decrypt Password** to reveal the Administrator password  
+
+5. **Launch RDP Client**  
+   - Open the downloaded `.rdp` file using Microsoft Remote Desktop (macOS/Windows)  
+   - Enter the decrypted Administrator password when prompted  
+
+   ![Enter Decrypted password](screenshots/connect-rdp-3.png)
+
+   ![Launch Windows instance](screenshots/connect-rdp-4.png)
+
+**RDP Connection Tips**  
+- Ensure your security group allows RDP from your IP.  
+- Save the `.rdp` file and password securely for future sessions.  
+- Use the `network-bootcamp-key.pem.pem` or converted credentials as needed on Windows machines.
+
