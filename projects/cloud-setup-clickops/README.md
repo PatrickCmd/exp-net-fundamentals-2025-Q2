@@ -209,3 +209,41 @@ Follow these steps to create a secondary network interface (ENA) in your VPC and
 - Improves network segmentation by isolating management or application traffic.  
 - Enables you to move or reassign the interface independently of the instance configuration.
 
+## Connect to Ubuntu Instance via SSH (PuTTY / Native SSH)
+
+Follow these steps to access your Ubuntu instance using PuTTY (Windows/macOS) or the native SSH client on Linux/macOS:
+
+1. **Install PuTTY and PuTTYgen**  
+   - Windows: Download from [putty.org](https://www.putty.org/)  
+   - macOS: Follow instructions at [SSH.com PuTTY on Mac](https://www.ssh.com/academy/ssh/putty/mac)  
+
+2. **Generate / Load SSH Key in PuTTY and PuTTYgen (Windows)**  
+   - Open **PuTTYgen** and click **Load**  
+   - Select your private key file `nwtbootcampkey.pem`  
+   - Click **Save private key** to export as `.ppk`  
+
+3. **Connect with PuTTY and puttygen (Windows)**  
+   - Open **PuTTY**  
+   - _Host Name_: `ubuntu@<public-ip>`  
+   - Under **Connection → SSH → Auth**, browse to your `.ppk` file  
+   - Click **Open** to start the SSH session  
+
+4. **Connect Using Native SSH (macOS)**  
+```bash
+# Convert PuTTY PPK to OpenSSH PEM format
+puttygen "projects/key-pairs/nwtbootcampkey-ppk.ppk" -O private-openssh -o "projects/key-pairs/nwtbootcampkey.pem"
+
+# Restrict private key permissions
+chmod go-rw projects/key-pairs/nwtbootcampkey.pem
+
+# SSH into Ubuntu instance (replace with your public DNS)
+ssh -i "projects/key-pairs/nwtbootcampkey.pem" ubuntu@ec2-3-238-80-135.compute-1.amazonaws.com
+```
+
+   ![PuTTYgen SSH Key Load](screenshots/connect-ubuntu-puttygen-ssh.png)
+
+**SSH Connection Tips**  
+- Ensure your security group allows SSH (TCP 22) from your IP.  
+- Replace `<public-ip>` with the instance’s public IPv4 address from the EC2 console.  
+- Keep your private key secure; never share or commit it.
+
