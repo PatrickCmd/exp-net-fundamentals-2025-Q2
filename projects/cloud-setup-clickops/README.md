@@ -148,3 +148,39 @@ Follow these steps to connect to your Windows Server using a Remote Desktop clie
 - Save the `.rdp` file and password securely for future sessions.  
 - Use the `network-bootcamp-key.pem.pem` or converted credentials as needed on Windows machines.
 
+## Launch Ubuntu Server EC2 Instance
+
+Follow these steps to launch an Ubuntu EC2 instance:
+
+1. **Open the EC2 Console**  
+   
+2. **Click Launch Instance**  
+
+3. **Select a Free Tier Eligible Ubuntu AMI** 
+   ![EC2 Console](screenshots/create-ubuntu-instance-1.png)
+
+
+4. **Choose Instance Type**  
+   - _Instance type_: `t3.medium`
+   ![Launch Instance](screenshots/create-ubuntu-instance-2.png)
+
+5. **Configure Instance Details**  
+   - _Network_: `network-bootcamp-vpc`  
+   - _Subnet_: `network-bootcamp-PublicSubnetAZ1`  
+   - _Auto-assign Public IP_: Enable  
+   ![Launch Instance](screenshots/create-ubuntu-instance-2.png)
+
+6. **Select Key Pair**  
+   - _Key pair name_: `network-bootcamp-key` (ppk)  
+   ![Select Key Pair](screenshots/create-keypair-ppk.png)
+
+7. **Configure Security Group**  
+   - _Security group_: `allow-rdp-login` (existing)  
+   - Click **Edit security group**  
+   - Add **SSH**: Source = My IP  
+   ![Select Security Group](screenshots/create-ubuntu-instance-3.png)
+
+8. **Review and Launch**  
+   Click **Launch** to start the Ubuntu instance.
+   ![Configure Details](screenshots/create-ubuntu-instance-4.png)
+
