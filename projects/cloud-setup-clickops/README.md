@@ -184,3 +184,28 @@ Follow these steps to launch an Ubuntu EC2 instance:
    Click **Launch** to start the Ubuntu instance.
    ![Configure Details](screenshots/create-ubuntu-instance-4.png)
 
+## Launch and Attach Network Interface to Ubuntu Instance
+
+Follow these steps to create a secondary network interface (ENA) in your VPC and attach it to the Ubuntu instance:
+
+1. **Open Network Interfaces**  
+
+2. **Create Network Interface**  
+   - _Description_: `network-bootcamp-nic`  
+   - _Interface type_: `ena`  
+   - _Subnet_: `network-bootcamp-PrivateSubnetAZ1`  
+   - _Auto-assign private IP_: Enable  
+   - _Security group_: `allow-rdp-login`  
+   ![Create NIC Ubuntu](screenshots/create-ubuntu-nic-1.png)
+   ![Create NIC Ubuntu](screenshots/create-ubuntu-nic-2.png)
+
+3. **Attach Network Interface**  
+   - Select the NIC `network-bootcamp-nic`  
+   - Click **Actions > Attach**  
+   - Choose **Instance**: your Ubuntu Server instance  
+   ![Attach NIC to Ubuntu](screenshots/attach-network-interface-ubuntu.png)
+
+**Network Interface Rationale**  
+- Improves network segmentation by isolating management or application traffic.  
+- Enables you to move or reassign the interface independently of the instance configuration.
+
