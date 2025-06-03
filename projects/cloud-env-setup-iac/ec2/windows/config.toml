@@ -1,0 +1,10 @@
+[deploy]
+bucket = 'cfn-network-bootcamp-1001'
+region = 'us-east-1'
+stack_name = 'NetworkBootCamp-windows-server'
+vpc_stack_name = 'NetworkBootCamp'
+
+[parameters]
+VpcStackName = 'NetworkBootCamp'
+KeyName ='nwtbootcampkey-pem'
+InstanceType = 't3.large'

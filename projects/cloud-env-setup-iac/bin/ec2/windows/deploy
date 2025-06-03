@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Determine paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IAC_ROOT="$(cd "$SCRIPT_DIR/../../../" && pwd)"
+
+# Paths to CFN template and config
+CFN_PATH="$IAC_ROOT/ec2/windows/template.yml"
+CONFIG_PATH="$IAC_ROOT/ec2/windows/config.toml"
+PARAMETERS=$(cfn-toml params v2 -t $CONFIG_PATH)
+
+# Defaults
+PROFILE=""
+REGION=$(cfn-toml key deploy.region -t $CONFIG_PATH)
+STACK_NAME=$(cfn-toml key deploy.stack_name -t $CONFIG_PATH)
+TEMPLATE_FILE=$CFN_PATH
+S3_BUCKET=$(cfn-toml key deploy.bucket -t $CONFIG_PATH)
+S3_PREFIX="network-bootcamp-windows-server"
+VPC_STACK_NAME=$(cfn-toml key deploy.vpc_stack_name -t $CONFIG_PATH)
+
+usage() {
+  echo "Usage: $0 -p PROFILE"
+  exit 1
+}
+
+# Parse arguments
+while getopts "p:" opt; do
+  case $opt in
+    p) PROFILE="$OPTARG" ;;      # AWS CLI profile
+    *) usage ;;
+  esac
+done
+
+# Validate required arguments
+if [[ -z "$PROFILE" ]]; then
+  echo "Error: profile (-p) is required"
+  usage
+fi
+
+# Lint template
+echo "Linting CloudFormation template: $TEMPLATE_FILE"
+cfn-lint "$TEMPLATE_FILE"
+
+# Deploy stack
+echo "Deploying Windows stack '$STACK_NAME' (VPC from '$VPC_STACK_NAME') in region '$REGION' using profile '$PROFILE'"
+aws cloudformation deploy \
+  --profile "$PROFILE" \
+  --region "$REGION" \
+  --stack-name "$STACK_NAME" \
+  --s3-bucket "$S3_BUCKET" \
+  --s3-prefix "${S3_PREFIX:-windows-server}" \
+  --template-file "$TEMPLATE_FILE" \
+  --parameter-overrides $PARAMETERS \
+  --tags Project=network-bootcamp,Environment=dev \
+  --no-execute-changeset \
+  --capabilities CAPABILITY_NAMED_IAM
+
+echo "Deployment of stack '$STACK_NAME' complete."

@@ -128,3 +128,51 @@ View Stack Events and confirm that is complete
 **Deployed VPC**
 
 ![VPC](./screenshots/deployed-vpc.png)
+
+## Provision Windows EC2 Instance with AWS CFN
+
+### Windows EC2 AWS Infrastructure Composer
+
+![Windows EC2 Composer](./screenshots/windows-server-infra-composer.png)
+
+### Check your AWS Account
+
+```sh
+aws sts get-caller-identity --profile $PROFILE
+```
+
+### Run Deployment Script
+
+```sh
+cd projects/cloud-env-setup-iac
+chmod u+x ./bin/ec2/windows/**
+./bin/ec2/windows/deploy -p $PROFILE -p $PROFILE
+```
+
+![Deploy Template](./screenshots/windows-server-stack-changeset.png)
+
+Go to AWS Cloudformation in the web console to review and execute changeset
+
+![Review Changeset](./screenshots/windows-server-stack-changeset.png)
+
+View Stack Events and confirm that is complete
+
+![Events](./screenshots/windows-server-events.png)
+
+#### Resources, and Outputs
+**Resources**
+
+![Resources](./screenshots/windows-server-resources.png)
+
+**Outputs**
+
+![Outputs](./screenshots/windows-server-outputs.png)
+
+**Deployed VPC**
+
+![EC2](./screenshots/windows-server-launched.png)
+
+**Windows RDP Client**
+
+![RDP](./screenshots/windows-server-rdp-client.png)
+
