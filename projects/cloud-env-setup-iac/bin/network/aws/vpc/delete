@@ -11,6 +11,11 @@ CONFIG_PATH="$IAC_ROOT/network/aws-vpc/config.toml"
 REGION=$(cfn-toml key deploy.region -t $CONFIG_PATH)
 STACK_NAME=$(cfn-toml key deploy.stack_name -t $CONFIG_PATH)
 
+usage() {
+  echo "Usage: $0 -p PROFILE"
+  exit 1
+}
+
 # Parse arguments
 while getopts "p:" opt; do
   case $opt in
@@ -28,5 +33,5 @@ fi
 
 aws cloudformation delete-stack \
     --stack-name $STACK_NAME \
-    --region $REGION
+    --region $REGION \
     --profile $PROFILE
