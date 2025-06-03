@@ -1,1 +1,1 @@
-# exp-net-fundamentals-2025-Q2
+# Network Fundamentals BootCamp 2025-Q2
