@@ -21,3 +21,20 @@ Follow these steps to create a VPC with a single Availability Zone, one public s
    ![Review and Create](screenshots/create-vpc-4.png)
 
 By default, AWS will create one public and one private subnet in your chosen AZ using the specified CIDR block. Verify both subnets under **Subnets** in the VPC console (look for tags like `network-bootcamp-PublicSubnetAZ1` and `network-bootcamp-PrivateSubnetAZ1`).
+
+## Create Key Pairs
+
+Follow these steps to generate key pairs for SSH and RDP access:
+
+1. **Navigate to Key Pairs**  
+   ![Open Key Pairs](screenshots/create-keypair-pem.png)
+
+2. **Create PEM Key Pair**  
+   - _Key pair name_: `network-bootcamp-key`  
+   - _File format_: `pem`  
+   ![Create PEM Key Pair](screenshots/create-keypair-pem.png)
+
+3. **Create PPK Key Pair (Windows)**  
+   - _Key pair name_: `network-bootcamp-key`  
+   - _File format_: `ppk`  
+   ![Create PPK Key Pair](screenshots/create-keypair-ppk.png)
