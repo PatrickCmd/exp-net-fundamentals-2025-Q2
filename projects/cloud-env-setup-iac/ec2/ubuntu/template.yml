@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Provision an Ubuntu EC2 instance into the existing VPC subnets.
+
+Parameters:
+  VpcStackName:
+    Type: String
+    Default: network-bootcamp-stack
+    Description: Stack name exporting VPC resources
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: nwtbootcampkey-ppk
+    Description: Name of existing EC2 key pair (ppk)
+  InstanceType:
+    Type: String
+    Default: t3.medium
+    Description: EC2 instance type for Ubuntu server
+  UbuntuAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id
+    Description: Latest Ubuntu 24.04 LTS AMI (x86_64 HVM gp3) via SSM
+
+Resources:
+  UbuntuServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref UbuntuAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: !ImportValue
+            Fn::Sub: ${VpcStackName}-PublicSubnetId
+          AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          GroupSet:
+            - !ImportValue
+              Fn::Sub: ${VpcStackName}-AllowRdpSshSecurityGroupId
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 30
+            VolumeType: gp3
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ubuntu-server
+
+  SecondaryNetworkInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: Secondary ENA in private subnet for management traffic
+      SubnetId: !ImportValue
+        Fn::Sub: ${VpcStackName}-PrivateSubnetId
+      GroupSet:
+        - !ImportValue
+          Fn::Sub: ${VpcStackName}-AllowRdpSshSecurityGroupId
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ubuntu-secondary-nic
+
+  AttachSecondaryENI:
+    Type: AWS::EC2::NetworkInterfaceAttachment
+    Properties:
+      InstanceId: !Ref UbuntuServerInstance
+      NetworkInterfaceId: !Ref SecondaryNetworkInterface
+      DeviceIndex: 1
+      DeleteOnTermination: true
+
+Outputs:
+  UbuntuInstanceId:
+    Description: ID of the Ubuntu EC2 instance
+    Value: !Ref UbuntuServerInstance
+    Export:
+      Name: !Sub ${AWS::StackName}-UbuntuInstanceId
+  UbuntuInstancePublicIp:
+    Description: Public IP address of the Ubuntu instance
+    Value: !GetAtt UbuntuServerInstance.PublicIp
+    Export:
+      Name: !Sub ${AWS::StackName}-UbuntuInstancePublicIp
+  UbuntuInstancePrivateIp:
+    Description: Primary private IP of the Ubuntu instance
+    Value: !GetAtt UbuntuServerInstance.PrivateIp
+    Export:
+      Name: !Sub ${AWS::StackName}-UbuntuInstancePrivateIp
+  SecondaryNetworkInterfaceId:
+    Description: ID of the secondary network interface
+    Value: !Ref SecondaryNetworkInterface
+    Export:
+      Name: !Sub ${AWS::StackName}-UbuntuSecondaryNetworkInterfaceId
