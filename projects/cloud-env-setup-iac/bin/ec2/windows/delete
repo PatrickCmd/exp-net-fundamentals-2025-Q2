@@ -2,10 +2,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IAC_ROOT="$(cd "$SCRIPT_DIR/../../../../" && pwd)"
+IAC_ROOT="$(cd "$SCRIPT_DIR/../../../" && pwd)"
 
 # Paths to config
-CONFIG_PATH="$IAC_ROOT/network/aws-vpc/config.toml"
+CONFIG_PATH="$IAC_ROOT/ec2/windows/config.toml"
 
 
 REGION=$(cfn-toml key deploy.region -t $CONFIG_PATH)

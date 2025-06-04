@@ -1,0 +1,10 @@
+[deploy]
+bucket = 'cfn-network-bootcamp-1001'
+region = 'us-east-1'
+stack_name = 'NetworkBootCamp-ubuntu-server'
+vpc_stack_name = 'NetworkBootCamp'
+
+[parameters]
+VpcStackName = 'NetworkBootCamp'
+KeyName ='nwtbootcampkey-ppk'
+InstanceType = 't3.medium'

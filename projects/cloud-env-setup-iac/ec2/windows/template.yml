@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Provision a Windows EC2 instance into the existing VPC and public subnet.
+
+Parameters:
+  VpcStackName:
+    Type: String
+    Default: network-bootcamp-stack
+    Description: CloudFormation stack name exporting VPC resources
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: network-bootcamp-key
+    Description: Name of existing EC2 key pair (PEM)
+  InstanceType:
+    Type: String
+    Default: t3.large
+    Description: EC2 instance type for Windows server
+  WindowsAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-windows-latest/Windows_Server-2025-English-Full-Base
+    Description: SSM parameter path for the latest Windows AMI
+
+Resources:
+  WindowsServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref WindowsAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId:
+            Fn::ImportValue: !Sub "${VpcStackName}-PublicSubnetId"
+          AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          GroupSet:
+            - Fn::ImportValue:
+                Fn::Sub: "${VpcStackName}-AllowRdpSshSecurityGroupId"
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-windows-server"
+
+  # Secondary ENA for private network traffic on the Windows server
+  SecondaryNetworkInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: "Secondary ENA for private subnet traffic on Windows server"
+      SubnetId:
+        Fn::ImportValue: !Sub "${VpcStackName}-PrivateSubnetId"
+      GroupSet:
+        - Fn::ImportValue:
+            Fn::Sub: "${VpcStackName}-AllowRdpSshSecurityGroupId"
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-windows-secondary-nic"
+
+  # Attach the secondary ENA to the Windows instance at eth1
+  WindowsSecondaryAttachment:
+    Type: AWS::EC2::NetworkInterfaceAttachment
+    Properties:
+      InstanceId: !Ref WindowsServerInstance
+      NetworkInterfaceId: !Ref SecondaryNetworkInterface
+      DeleteOnTermination: true
+      DeviceIndex: 1
+
+Outputs:
+  WindowsInstanceId:
+    Description: ID of the Windows EC2 instance
+    Value: !Ref WindowsServerInstance
+    Export:
+      Name: !Sub "${AWS::StackName}-WindowsInstanceId"
+  WindowsInstancePublicIp:
+    Description: Public IP address of the Windows instance
+    Value: !GetAtt WindowsServerInstance.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-WindowsInstancePublicIp"
+  WindowsInstancePublicDns:
+    Description: Public DNS name of the Windows instance
+    Value: !GetAtt WindowsServerInstance.PublicDnsName
+    Export:
+      Name: !Sub "${AWS::StackName}-WindowsInstancePublicDns"

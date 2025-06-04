@@ -3,10 +3,6 @@ Description: Provision a VPC with one Availability Zone, one public subnet, and
   one private subnet.
 
 Parameters:
-  VpcName:
-    Type: String
-    Default: network-bootcamp-vpc
-    Description: Name tag for the VPC
   VpcCidr:
     Type: String
     Default: 10.200.123.0/24
@@ -23,6 +19,10 @@ Parameters:
     Type: AWS::EC2::AvailabilityZone::Name
     Default: us-east-1a
     Description: Availability Zone for resources
+  MyIpCidr:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: Your public IP address in CIDR notation for SSH/RDP access
 
 Resources:
   VPC:
@@ -33,17 +33,14 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Ref VpcName
+          Value: !Sub "${AWS::StackName}-vpc"
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref VpcName
-              - igw
+          Value: !Sub "${AWS::StackName}-igw"
 
   VPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -60,10 +57,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref VpcName
-              - PublicSubnetAZ1
+          Value: !Sub "${AWS::StackName}-PublicSubnetAZ1"
 
   PrivateSubnet:
     Type: AWS::EC2::Subnet
@@ -74,10 +68,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref VpcName
-              - PrivateSubnetAZ1
+          Value: !Sub "${AWS::StackName}-PrivateSubnetAZ1"
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -85,10 +76,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref VpcName
-              - Public-RT
+          Value: !Sub "${AWS::StackName}-Public-RT"
 
   PublicRoute:
     Type: AWS::EC2::Route
@@ -104,13 +92,68 @@ Resources:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
 
+  AllowRdpSshSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: allow-rdp-ssh-login
+      GroupDescription: Security group to allow RDP, SSH, and internal VPC traffic
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: !Ref MyIpCidr
+          Description: Allow RDP access from your specified IP
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref MyIpCidr
+          Description: Allow SSH access from your specified IP
+        - IpProtocol: -1
+          CidrIp: !Ref VpcCidr
+          Description: Allow all traffic within the VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-SG"
+
 Outputs:
   VpcId:
     Description: ID of the created VPC
     Value: !Ref VPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VpcId"
+  VpcCidr:
+    Description: CIDR block of the VPC
+    Value: !Ref VpcCidr
+    Export:
+      Name: !Sub "${AWS::StackName}-VpcCidr"
   PublicSubnetId:
     Description: ID of the public subnet
     Value: !Ref PublicSubnet
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicSubnetId"
   PrivateSubnetId:
     Description: ID of the private subnet
     Value: !Ref PrivateSubnet
+    Export:
+      Name: !Sub "${AWS::StackName}-PrivateSubnetId"
+  SubnetCidrBlocks:
+    Description: Comma-separated subnet CIDR blocks
+    Value: !Join [ ',', [ !Ref PublicSubnetCidr, !Ref PrivateSubnetCidr ] ]
+    Export:
+      Name: !Sub "${AWS::StackName}-SubnetCidrBlocks"
+  AvailabilityZone:
+    Description: Availability Zone for subnets
+    Value: !Ref AvailabilityZone
+    Export:
+      Name: !Sub "${AWS::StackName}-AvailabilityZone"
+  DefaultSecurityGroupId:
+    Description: ID of the VPC's default security group
+    Value: !GetAtt VPC.DefaultSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-DefaultSecurityGroupId"
+  AllowRdpSshSecurityGroupId:
+    Description: ID of the allow-rdp-ssh-login security group
+    Value: !Ref AllowRdpSshSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-AllowRdpSshSecurityGroupId"

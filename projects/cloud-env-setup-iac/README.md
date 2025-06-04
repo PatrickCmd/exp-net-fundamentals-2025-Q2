@@ -128,3 +128,139 @@ View Stack Events and confirm that is complete
 **Deployed VPC**
 
 ![VPC](./screenshots/deployed-vpc.png)
+
+## Provision Windows EC2 Instance with AWS CFN
+
+### Windows EC2 AWS Infrastructure Composer
+
+![Windows EC2 Composer](./screenshots/windows-server-infra-composer.png)
+
+### Check your AWS Account
+
+```sh
+aws sts get-caller-identity --profile $PROFILE
+```
+
+### Run Deployment Script
+
+```sh
+cd projects/cloud-env-setup-iac
+chmod u+x ./bin/ec2/windows/**
+./bin/ec2/windows/deploy -p $PROFILE -p $PROFILE
+```
+
+![Deploy Template](./screenshots/windows-server-stack-changeset.png)
+
+Go to AWS Cloudformation in the web console to review and execute changeset
+
+![Review Changeset](./screenshots/windows-server-stack-changeset.png)
+
+View Stack Events and confirm that is complete
+
+![Events](./screenshots/windows-server-events.png)
+
+#### Resources, and Outputs
+**Resources**
+
+![Resources](./screenshots/windows-server-resources.png)
+
+**Outputs**
+
+![Outputs](./screenshots/windows-server-outputs.png)
+
+**Deployed VPC**
+
+![EC2](./screenshots/windows-server-launched.png)
+
+**Windows RDP Client**
+
+![RDP](./screenshots/windows-server-rdp-client.png)
+
+
+## Provision Ubuntu EC2 Instance with AWS CFN
+
+### Ubuntu EC2 AWS Infrastructure Composer
+
+![Ubuntu EC2 Composer](./screenshots/ubuntu-server-infra-composer.png)
+
+### Check your AWS Account
+
+```sh
+aws sts get-caller-identity --profile $PROFILE
+```
+
+### Run Deployment Script
+
+```sh
+cd projects/cloud-env-setup-iac
+chmod u+x ./bin/ec2/ubuntu/**
+./bin/ec2/ubuntu/deploy -p $PROFILE -p $PROFILE
+```
+
+![Deploy Template](./screenshots/ubuntu-server-stack-changeset.png)
+
+Go to AWS Cloudformation in the web console to review and execute changeset
+
+![Review Changeset](./screenshots/ubuntu-server-stack-changeset.png)
+
+View Stack Events and confirm that is complete
+
+![Events](./screenshots/ubuntu-server-events.png)
+
+#### Resources, and Outputs
+**Resources**
+
+![Resources](./screenshots/ubuntu-server-resources.png)
+
+**Outputs**
+
+![Outputs](./screenshots/ubuntu-server-outputs.png)
+
+**Deployed VPC**
+
+![EC2](./screenshots/ubuntu-server-launched.png)
+
+### Connect to Ubuntu Instance via SSH (PuTTY / Native SSH)
+
+Follow these steps to access your Ubuntu instance using PuTTY (Windows/macOS) or the native SSH client on Linux/macOS:
+
+1. **Install PuTTY and PuTTYgen**  
+   - Windows: Download from [putty.org](https://www.putty.org/)  
+   - macOS: Follow instructions at [SSH.com PuTTY on Mac](https://www.ssh.com/academy/ssh/putty/mac)  
+
+2. **Generate / Load SSH Key in PuTTY and PuTTYgen (Windows)**  
+   - Open **PuTTYgen** and click **Load**  
+   - Select your private key file `nwtbootcampkey.pem`  
+   - Click **Save private key** to export as `.ppk`  
+
+3. **Connect with PuTTY and puttygen (Windows)**  
+   - Open **PuTTY**  
+   - _Host Name_: `ubuntu@<public-ip>`  
+   - Under **Connection → SSH → Auth**, browse to your `.ppk` file  
+   - Click **Open** to start the SSH session  
+
+4. **Connect Using Native SSH (macOS)**  
+```bash
+# Convert PuTTY PPK to OpenSSH PEM format
+puttygen "../key-pairs/nwtbootcampkey-ppk.ppk" -O private-openssh -o "../key-pairs/nwtbootcampkey-ppk.pem"
+
+# Restrict private key permissions
+chmod go-rw ../key-pairs/nwtbootcampkey-ppk.pem
+
+# SSH into Ubuntu instance (replace with your public DNS)
+ssh -i "../key-pairs/nwtbootcampkey.pem" ubuntu@ec2-13-220-241-36.compute-1.amazonaws.com
+```
+
+![PuTTYgen SSH Key Load](./screenshots/ubuntu-ssh-putty-connect.png)
+
+
+## Clean Resources
+
+To clean all the provisioned resources run the commands
+
+```sh
+./bin/ec2/ubuntu/delete -p $PROFILE
+./bin/ec2/windows/delete -p $PROFILE
+./bin/network/aws/vpc/delete -p $PROFILE
+```
+
