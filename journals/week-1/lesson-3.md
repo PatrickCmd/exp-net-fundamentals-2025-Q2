@@ -1,6 +1,4 @@
-<!-- filepath: /Users/patrickwalukagga/Projects/personal/exp-net-fundamentals-2025-Q2/journals/week-1/lesson-3.md -->
-
-# Lesson 3 Journal
+# Journal Lesson 3 - IP Address Management
 
 **Introduction**
 In Lesson 3, the main goal was to gain a comprehensive understanding of IP address management on both Windows and Ubuntu EC2 instances within an AWS VPC. I learned how public and private Elastic Network Interfaces (ENIs) map to subnets, and how to view, configure, and troubleshoot IP settings using native OS tools and AWS CLI commands.
