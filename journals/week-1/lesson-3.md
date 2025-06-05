@@ -26,3 +26,7 @@ In Lesson 3, the main goal was to gain a comprehensive understanding of IP addre
 
 **Reflection**
 By combining AWS networking concepts with hands-on OS-level commands, I now feel somehow confident managing IP addressing and routing on cloud instances. Understanding both dynamic DHCP workflows and static configuration tools like Netplan equips me to design resilient, scalable network architectures in AWS and troubleshoot connectivity issues effectively.
+
+## Project
+
+See full project [here](../../projects/ip-address-management/README.md)
