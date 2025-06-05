@@ -129,6 +129,51 @@ View Stack Events and confirm that is complete
 
 ![VPC](./screenshots/deployed-vpc.png)
 
+## Calling AMI public parameters in Parameter Store
+
+https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-public-parameters-ami.html
+
+```sh
+aws ssm get-parameter \
+  --name "/aws/service/ami-amazon-linux-latest/rhel10-hvm-ebs-gp2/us-east-1" \
+  --region us-east-1 \
+  --profile $PROFILE
+
+
+aws ssm get-parameters-by-path \
+    --path /aws/service/ami-amazon-linux-latest \
+    --region us-east-1 \
+    --query 'Parameters[].Name' \
+    --profile $PROFILE
+
+aws ssm get-parameters-by-path \
+    --path /aws/service/ami-windows-latest \
+    --region us-east-1 \
+    --query 'Parameters[].Name' \
+    --profile $PROFILE
+
+aws ssm get-parameters-by-path \
+    --path /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3 \
+    --region us-east-1 \
+    --query 'Parameters[].Name' \
+    --profile $PROFILE
+
+aws ssm get-parameters-by-path \
+    --path /aws/service/redhat \
+    --region us-east-1 \
+    --query 'Parameters[].Name' \
+    --profile $PROFILE
+
+aws ec2 describe-images \
+  --owners 309956199498 \
+  --filters "Name=name,Values=RHEL-10*" \
+            "Name=state,Values=available" \
+  --query "reverse(sort_by(Images, &CreationDate))[0].ImageId" \
+  --output text \
+  --region us-east-1 \
+  --profile "$PROFILE"
+```
+
 ## Provision Windows EC2 Instance with AWS CFN
 
 ### Windows EC2 AWS Infrastructure Composer
@@ -193,8 +238,8 @@ aws sts get-caller-identity --profile $PROFILE
 
 ```sh
 cd projects/cloud-env-setup-iac
-chmod u+x ./bin/ec2/ubuntu/**
-./bin/ec2/ubuntu/deploy -p $PROFILE -p $PROFILE
+chmod u+x ./bin/ec2/ubuntu/*
+./bin/ec2/ubuntu/deploy -p $PROFILE
 ```
 
 ![Deploy Template](./screenshots/ubuntu-server-stack-changeset.png)
@@ -253,6 +298,29 @@ ssh -i "../key-pairs/nwtbootcampkey.pem" ubuntu@ec2-13-220-241-36.compute-1.amaz
 
 ![PuTTYgen SSH Key Load](./screenshots/ubuntu-ssh-putty-connect.png)
 
+## Provision Redhat EC2 Instance with AWS CFN
+
+### Run Deployment Script
+
+```sh
+cd projects/cloud-env-setup-iac
+chmod u+x ./bin/ec2/redhat/*
+./bin/ec2/ubuntu/deploy -p $PROFILE
+```
+
+### Connect to Ubuntu Instance via SSH (PuTTY / Native SSH)
+**Connect Using Native SSH (macOS)**  
+
+```bash
+# Convert PuTTY PPK to OpenSSH PEM format
+puttygen "../key-pairs/nwtbootcampkey-ppk.ppk" -O private-openssh -o "../key-pairs/nwtbootcampkey-ppk.pem"
+
+# Restrict private key permissions
+chmod go-rw ../key-pairs/nwtbootcampkey-ppk.pem
+
+# SSH into Ubuntu instance (replace with your public DNS)
+ssh -i "../key-pairs/nwtbootcampkey.pem" ec2-user@ec2-44-200-120-120.compute-1.amazonaws.com
+```
 
 ## Clean Resources
 
@@ -261,6 +329,7 @@ To clean all the provisioned resources run the commands
 ```sh
 ./bin/ec2/ubuntu/delete -p $PROFILE
 ./bin/ec2/windows/delete -p $PROFILE
+./bin/ec2/redhat/delete -p $PROFILE
 ./bin/network/aws/vpc/delete -p $PROFILE
 ```
 

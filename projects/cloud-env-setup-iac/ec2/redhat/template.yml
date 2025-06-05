@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Provision a Red Hat Enterprise Linux 10 EC2 instance into the existing VPC subnets.
+
+Parameters:
+  VpcStackName:
+    Type: String
+    Default: network-bootcamp-stack
+    Description: Stack name exporting VPC resources
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: nwtbootcampkey-ppk
+    Description: Name of existing EC2 key pair (ppk)
+  InstanceType:
+    Type: String
+    Default: t3.medium
+    Description: EC2 instance type for Red Hat server
+  # RedhatAmiId:
+  #   Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+  #   Default: /aws/service/redhat/enterprise-linux/10/x86_64/hvm/ebs-gp2
+  #   Description: Latest RHEL 10 HVM, gp3 EBS AMI via SSM
+  RedhatAmiId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-03a13a09a711d3871
+    Description: RHEL 10 HVM, gp3 EBS AMI
+
+Resources:
+  RedhatServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref RedhatAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId:
+            Fn::ImportValue: !Sub "${VpcStackName}-PublicSubnetId"
+          AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          GroupSet:
+            - Fn::ImportValue: !Sub "${VpcStackName}-AllowRdpSshSecurityGroupId"
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 30
+            VolumeType: gp3
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-redhat-server"
+
+  SecondaryNetworkInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: "Secondary ENA for management and data traffic"
+      SubnetId:
+        Fn::ImportValue: !Sub "${VpcStackName}-PrivateSubnetId"
+      GroupSet:
+        - Fn::ImportValue: !Sub "${VpcStackName}-AllowRdpSshSecurityGroupId"
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-redhat-secondary-nic"
+
+  AttachSecondaryENI:
+    Type: AWS::EC2::NetworkInterfaceAttachment
+    Properties:
+      InstanceId: !Ref RedhatServerInstance
+      NetworkInterfaceId: !Ref SecondaryNetworkInterface
+      DeviceIndex: 1
+      DeleteOnTermination: true
+
+Outputs:
+  RedhatInstanceId:
+    Description: ID of the Red Hat EC2 instance
+    Value: !Ref RedhatServerInstance
+    Export:
+      Name: !Sub "${AWS::StackName}-RedhatInstanceId"
+  RedhatInstancePublicIp:
+    Description: Public IP address of the Red Hat instance
+    Value: !GetAtt RedhatServerInstance.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-RedhatInstancePublicIp"
+  RedhatInstancePrivateIp:
+    Description: Primary private IP of the Red Hat instance
+    Value: !GetAtt RedhatServerInstance.PrivateIp
+    Export:
+      Name: !Sub "${AWS::StackName}-RedhatInstancePrivateIp"
+  SecondaryNetworkInterfaceId:
+    Description: ID of the secondary network interface
+    Value: !Ref SecondaryNetworkInterface
+    Export:
+      Name: !Sub "${AWS::StackName}-RedhatSecondaryNetworkInterfaceId"
