@@ -13,3 +13,7 @@
 4. **Troubleshooting Workflow** - Identified where packets were dropped or forwarded incorrectly. - Inspected ARP tables and routing tables to resolve connectivity issues. - Validated end-to-end communication using ping and DNS resolution.
 
 **Reflection** This simulation provided hands-on experience with device CLI, network services, and protocol behaviors. Tracing packets step-by-step in Packet Tracer deepened my understanding of the OSI model and the interactions between layer-2 switching and layer-3 routing in a managed topology.
+
+## Lab
+
+See Lab [Here](../../projects/packet-tracer-lab/README.md)
