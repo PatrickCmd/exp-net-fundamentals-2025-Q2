@@ -4,4 +4,4 @@ region = 'us-east-1'
 stack_name = 'NetworkBootCamp'
 
 [parameters]
-MyIpCidr = '196.250.71.69/32'
+MyIpCidr = '196.250.68.15/32'
