@@ -264,7 +264,7 @@ And now I see the connection from my laptop using port `8000` was successful.
 
 ![laptop-web-broswer](./screenshots/windows-ec2-details-laptop-browser-1.png)
 
-![laptop-web-broswer](./screenshots/windows-ec2-details-laptop-browser-1.png)
+![laptop-web-broswer](./screenshots/windows-ec2-details-laptop-browser-2.png)
 
 On disabling the firewall rule, I see that the connection started failing again.
 
