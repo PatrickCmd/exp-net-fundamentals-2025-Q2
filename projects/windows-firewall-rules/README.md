@@ -1,4 +1,4 @@
-# Windows Defender Firewall
+# Windows Defender Firewall Rules
 
 ![firewall](./screenshots/windows-defender-firewall.png)
 
