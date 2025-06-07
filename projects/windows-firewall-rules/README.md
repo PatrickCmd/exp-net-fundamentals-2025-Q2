@@ -166,9 +166,9 @@ OR
 
 ![internal local browser](./screenshots/windows-ec2-instance-details-public.png)
 
-### Testing connecting on My Laptop outside AWS EC2 instance
+### Test connecting on My Laptop outside AWS EC2 instance
 
-On try to test on my web browser using my laptop outside AWS EC2 instance, I found that it was returning `server took long to respond`
+On trying to test on my web browser using my laptop outside AWS EC2 instance, I found that it was returning `server took long to respond`
 
 ![took-long-to-respond](./screenshots/windows-ec2-details-laptop-browser-3.png)
 
