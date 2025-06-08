@@ -44,3 +44,7 @@ The main goal of this lesson was to explore and master Linux firewalling toolsâ€
 - Expand the **iptables** section with deeper NAT (MASQUERADE, DNAT), mangle, and raw table examples.
 - Add IPv6 variants using **ip6tables** and firewalld IPv6 zone rules.
 - Investigate migrating custom rulesets to **nftables** for a more streamlined, future-proof firewall management experience.
+
+## Lab
+
+See Lab [here](../../projects/linux-firewall-rules/README.md)
