@@ -278,13 +278,6 @@ curl -u user:pass -v https://secure.example.com/data
 - `-nc` : No clobber; skip download if file exists.
 - `-q` : Quiet mode; no output.
 
-##### Differences from `curl`
-- **Specialization**: `wget` is focused on downloading to files and excels at recursive and batch download tasks, while `curl` is a general data-transfer tool that reads/writes data to standard streams.
-- **Recursion**: `wget` supports recursive retrieval and site mirroring out of the box; `curl` does not.
-- **Resuming**: Both support resume, but `wget`’s `-c` flag is simpler for large file continuation.
-- **Output Behavior**: By default, `wget` saves files to disk; `curl` outputs to stdout unless redirected with `-o` or `-O`.
-- **Protocol Coverage**: `curl` supports more protocols (SMTP, IMAP, etc.), headers manipulation, and fine-grained HTTP features; `wget` focuses on HTTP, HTTPS, and FTP.
-
 #### Using wget command to download single files
 
 ```sh
@@ -312,6 +305,11 @@ wget -O wordpress-install.zip https://wordpress.org/latest.zip
 ```
 
 ![different-file-names](./assets/wget-different-file-names.png)
+
+#### Key Differences: curl vs wget
+
+- `curl` focuses on data transfer and supports a wide array of protocols and options for scripting, headers, cookies, and HTTP methods. It is typically used for single requests or API testing.
+- `wget` excels at recursively downloading files and mirroring complete websites. It can follow links, handle retries, and mirror directory structures.
 
 #### More wget resources
 - [What is the wget command](https://www.hostinger.com/tutorials/wget-command-examples)
