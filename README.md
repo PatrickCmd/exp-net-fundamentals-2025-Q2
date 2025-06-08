@@ -9,6 +9,7 @@
 - [x] [Lesson 5](./journals/week-1/lesson-5.md)
 - [x] [Lesson 6](./journals/week-1/lesson-6.md)
 - [x] [Lesson 7](./journals/week-1/lesson-7.md)
+- [x] [Lesson 8](./journals/week-1/lesson-8.md)
 
 ## More Learning Resources
 - [Basic Networking COMPTIA - Youtube](https://www.youtube.com/watch?v=Xl0r_P07l2I)
