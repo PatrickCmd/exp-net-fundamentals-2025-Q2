@@ -28,3 +28,7 @@ In Lesson 7, the main goal was to explore key Linux networking utilities and con
 
 **Reflection**
 Practicing these tools and config files deepened my understanding of how Linux handles DNS lookup, network connections, data transfer, and packet capture. I now have a beginning solid toolkit for diagnosing networking issues, testing services, and analyzing traffic on Linux systems.
+
+## Lab
+
+See lab [here](../../projects/linux-networking-tools/README.md)
