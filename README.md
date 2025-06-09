@@ -1,5 +1,22 @@
 # Network Fundamentals BootCamp 2025-Q2
 
+## Three-Tier Web App with VPC Peering
+### Objectives
+1. Design & deploy two isolated VPCs (e.g., “Prod” and “Dev”)
+
+2. Implement a classic three-tier architecture (Web → App → DB) in each VPC
+
+3. Connect the two VPCs via VPC Peering, showing cross-VPC communication
+
+4. Demonstrate routing, Internet/NAT gateways, and security controls
+
+5. Validate connectivity & security boundaries
+
+![vpc-peering](./assets/vpc-peering.png)
+
+[Draw.io Link](https://drive.google.com/file/d/1Vcesp1mjpNYdCH9gp-mcBoD6BlHwcibg/view?usp=sharing)
+
+
 ## Technical Demonstration
 
 This repository presents a hands-on journey through Network Fundamentals in the two Weeks of the bootcamp. Below are the key technical highlights from each lesson – designed to demonstrate real-world skills in IP addressing, subnet design, firewall configuration, and cloud networking automation.
