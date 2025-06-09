@@ -1,0 +1,372 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create two VPCs (Requester and Accepter) with public/private
+  subnets, DNS support, tags, and a VPC Peering Connection
+
+Parameters:
+  VpcCidrA:
+    Type: String
+    Default: 10.65.1.0/24
+    Description: CIDR block for VPC A (Requester)
+  VpcCidrB:
+    Type: String
+    Default: 10.100.0.0/24
+    Description: CIDR block for VPC B (Accepter)
+  MyIpCidr:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: Your public IP in CIDR notation for SSH/RDP access
+  # Region:
+  #   Type: String
+  #   Default: us-east-1
+  #   Description: AWS Region for deployment
+
+Resources:
+  # VPC A (Requester)
+  VPCA:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidrA
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: test-cloud-network-vpc-A
+        - Key: Environment
+          Value: dev
+        - Key: Department
+          Value: Engineering
+
+  # VPC B (Accepter)
+  VPCB:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidrB
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: test-cloud-network-vpc-B
+        - Key: Environment
+          Value: test
+        - Key: Department
+          Value: Engineering
+
+  # Internet Gateway for VPC A and attachment
+  InternetGatewayA:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-igw-a
+
+  AttachIGWA:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPCA
+      InternetGatewayId: !Ref InternetGatewayA
+
+  # Route Table for public subnets in VPC A
+  PublicRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCA
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public-rt-a
+
+  # Default route to IGW in public RT A
+  PublicRouteA:
+    Type: AWS::EC2::Route
+    DependsOn: AttachIGWA
+    Properties:
+      RouteTableId: !Ref PublicRouteTableA
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGatewayA
+
+  # Subnets in VPC A (2 public, 2 private)
+  PublicSubnetA1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCA
+      CidrBlock: 10.65.1.0/26
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-pub-a1
+  PublicSubnetA2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCA
+      CidrBlock: 10.65.1.64/26
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-pub-a2
+  PrivateSubnetA1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCA
+      CidrBlock: 10.65.1.128/26
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-priv-a1
+  PrivateSubnetA2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCA
+      CidrBlock: 10.65.1.192/26
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-priv-a2
+
+  # Associate public subnets to public route table A
+  PubSubnetA1RouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA1
+      RouteTableId: !Ref PublicRouteTableA
+  PubSubnetA2RouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA2
+      RouteTableId: !Ref PublicRouteTableA
+
+  # Private route table for VPC A (no NAT by default)
+  PrivateRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCA
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-priv-rt-a
+  PrivSubnetA1Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA1
+      RouteTableId: !Ref PrivateRouteTableA
+  PrivSubnetA2Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA2
+      RouteTableId: !Ref PrivateRouteTableA
+
+  # Internet Gateway for VPC B and attachment
+  InternetGatewayB:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-igw-b
+  AttachIGWB:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPCB
+      InternetGatewayId: !Ref InternetGatewayB
+
+  # Route Table for public subnets in VPC B
+  PublicRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCB
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public-rt-b
+  PublicRouteB:
+    Type: AWS::EC2::Route
+    DependsOn: AttachIGWB
+    Properties:
+      RouteTableId: !Ref PublicRouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGatewayB
+
+  # Subnets in VPC B (2 public, 2 private)
+  PublicSubnetB1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCB
+      CidrBlock: 10.100.0.0/26
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-pub-b1
+  PublicSubnetB2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCB
+      CidrBlock: 10.100.0.64/26
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-pub-b2
+  PrivateSubnetB1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCB
+      CidrBlock: 10.100.0.128/26
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-priv-b1
+  PrivateSubnetB2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPCB
+      CidrBlock: 10.100.0.192/26
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-priv-b2
+
+  # Associate public subnets to public route table B
+  PubSubnetB1RouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB1
+      RouteTableId: !Ref PublicRouteTableB
+  PubSubnetB2RouteAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB2
+      RouteTableId: !Ref PublicRouteTableB
+
+  # Private route table for VPC B
+  PrivateRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCB
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-priv-rt-b
+  PrivSubnetB1Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB1
+      RouteTableId: !Ref PrivateRouteTableB
+  PrivSubnetB2Assoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB2
+      RouteTableId: !Ref PrivateRouteTableB
+
+  # Security Group in VPC A for RDP/SSH
+  AllowRdpSshSecurityGroupA:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow RDP and SSH from MyIp in VPC A
+      VpcId: !Ref VPCA
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: !Ref MyIpCidr
+          Description: Allow RDP from MyIp
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref MyIpCidr
+          Description: Allow SSH from MyIp
+        - IpProtocol: -1
+          CidrIp: !Ref VpcCidrA
+          Description: Allow all internal VPC traffic
+
+  # Security Group in VPC B for RDP/SSH
+  AllowRdpSshSecurityGroupB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow RDP and SSH from MyIp in VPC B
+      VpcId: !Ref VPCB
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: !Ref MyIpCidr
+          Description: Allow RDP from MyIp
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref MyIpCidr
+          Description: Allow SSH from MyIp
+        - IpProtocol: -1
+          CidrIp: !Ref VpcCidrB
+          Description: Allow all internal VPC traffic
+
+  # VPC Peering Connection
+  VPCPeeringConnectionAB:
+    Type: AWS::EC2::VPCPeeringConnection
+    Properties:
+      VpcId: !Ref VPCA
+      PeerVpcId: !Ref VPCB
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-peer-a-b
+
+  # Peering Route from A to B via private RT
+  PeeringRouteAtoB:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableA
+      DestinationCidrBlock: !Ref VpcCidrB
+      VpcPeeringConnectionId: !Ref VPCPeeringConnectionAB
+
+  # Peering Route from B to A via private RT
+  PeeringRouteBtoA:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableB
+      DestinationCidrBlock: !Ref VpcCidrA
+      VpcPeeringConnectionId: !Ref VPCPeeringConnectionAB
+
+Outputs:
+  VpcIdA:
+    Description: VPC A ID
+    Value: !Ref VPCA
+    Export:
+      Name: !Sub ${AWS::StackName}-VpcIdA
+  VpcCidrA:
+    Description: VPC A CIDR block
+    Value: !Ref VpcCidrA
+    Export:
+      Name: !Sub ${AWS::StackName}-VpcCidrA
+  SecurityGroupIdA:
+    Description: Security Group A ID
+    Value: !Ref AllowRdpSshSecurityGroupA
+    Export:
+      Name: !Sub ${AWS::StackName}-SgIdA
+  VpcIdB:
+    Description: VPC B ID
+    Value: !Ref VPCB
+    Export:
+      Name: !Sub ${AWS::StackName}-VpcIdB
+  VpcCidrB:
+    Description: VPC B CIDR block
+    Value: !Ref VpcCidrB
+    Export:
+      Name: !Sub ${AWS::StackName}-VpcCidrB
+  SecurityGroupIdB:
+    Description: Security Group B ID
+    Value: !Ref AllowRdpSshSecurityGroupB
+    Export:
+      Name: !Sub ${AWS::StackName}-SgIdB
+  VPCPeeringConnectionId:
+    Description: VPC Peering Connection ID
+    Value: !Ref VPCPeeringConnectionAB
+    Export:
+      Name: !Sub ${AWS::StackName}-VpcPeeringConnectionId

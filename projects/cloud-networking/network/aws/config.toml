@@ -1,0 +1,8 @@
+[deploy]
+bucket = 'cfn-network-bootcamp-1001'
+region = 'us-east-1'
+stack_name = 'NetworkBootCamp-VPC-Peering'
+
+[parameters]
+MyIpCidr = '196.250.68.15/32'
+Region = 'us-east-1'

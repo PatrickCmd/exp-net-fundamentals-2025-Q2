@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Usage: network-deploy <aws-profile> <region> [stack-name]
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+  echo "Usage: $0 <aws-profile> <region> [stack-name]"
+  exit 1
+fi
+
+PROFILE=""
+# Resolve template path relative to script location
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+IAC_ROOT="$(cd "$SCRIPT_DIR/../../" && pwd)"
+
+# Paths to CFN template and config
+CFN_PATH="$IAC_ROOT/network/aws/template.yml"
+CONFIG_PATH="$IAC_ROOT/network/aws/config.toml"
+TEMPLATE_PATH=$CFN_PATH
+
+REGION=$(cfn-toml key deploy.region -t $CONFIG_PATH)
+STACK_NAME=$(cfn-toml key deploy.stack_name -t $CONFIG_PATH)
+S3_BUCKET=$(cfn-toml key deploy.bucket -t $CONFIG_PATH)
+S3_PREFIX="network-bootcamp"
+PARAMETERS=$(cfn-toml params v2 -t $CONFIG_PATH)
+
+usage() {
+  echo "Usage: $0 -p PROFILE"
+  exit 1
+}
+
+# Parse arguments
+while getopts "p:" opt; do
+  case $opt in
+    p) PROFILE="$OPTARG" ;;  # AWS CLI profile to use
+    *) usage ;;
+  esac
+done
+
+# Validate required args
+if [[ -z "$PROFILE" ]]; then
+  echo "Error: profile (-p) is required"
+  usage
+fi
+
+# Lint the template
+echo "Linting CloudFormation template: $TEMPLATE_PATH"
+cfn-lint "$TEMPLATE_PATH"
+
+# Deploy CloudFormation stack without executing changeset
+echo "Deploying stack '$STACK_NAME' to region '$REGION' using profile '$PROFILE'"
+
+aws cloudformation deploy \
+  --profile "$PROFILE" \
+  --region "$REGION" \
+  --stack-name "$STACK_NAME" \
+  --s3-bucket "$S3_BUCKET" \
+  --s3-prefix "${S3_PREFIX:-networking}" \
+  --template-file "$TEMPLATE_PATH" \
+  --no-execute-changeset \
+  --tags group=network-bootcamp-networking \
+  --parameter-overrides $PARAMETERS \
+  --capabilities CAPABILITY_NAMED_IAM
+
+echo "Deployment initiated: change set created for stack '$STACK_NAME' (profile=$AWS_PROFILE, region=$REGION)."
